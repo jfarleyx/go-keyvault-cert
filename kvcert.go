@@ -92,7 +92,7 @@ type AzureKeyVault struct {
 	VaultName string
 	// authenticated is set to true when the Key Vault client is authenticated
 	authenticated bool
-	// Client is the keyvault.BaseClient that facilitates communication with Azure Key Vault.
+	// client is the keyvault.BaseClient that facilitates communication with Azure Key Vault.
 	client keyvault.BaseClient
 	// The URL to a specific Azure Key Vault. Comprised of protocol (https), VaultName, and azure.PublicCloud.KeyVaultDNSSuffix.
 	vaultBaseURL string

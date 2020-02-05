@@ -7,6 +7,8 @@ to fetch a certificate and key from Azure Key Vault. go-keyvault-cert is ideal f
 
 ## Usage
 
+``` go get github.com/jfarleyx/go-keyvault-cert ```
+
 go-keyvault-cert is really easy to use. The simplist way to get started is to utilize Azure client credentials provided 
 as environment variables. The following environment variables and their associated values 
 are required: 
