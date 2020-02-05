@@ -1,5 +1,6 @@
 # GO-KEYVAULT-CERT
 [![GoDoc](https://godoc.org/github.com/jfarleyx/go-keyvault-cert?status.svg)](http://godoc.org/github.com/jfarleyx/go-keyvault-cert)
+[![Go Report](https://goreportcard.com/badge/github.com/jfarleyx/go-keyvault-cert)](https://goreportcard.com/badge/github.com/jfarleyx/go-keyvault-cert)
 
 go-keyvault-cert is an easy-to-use wrapper around [azure-sdk-for-go](https://github.com/Azure/azure-sdk-for-go) that allows you 
 to fetch a certificate and key from Azure Key Vault. go-keyvault-cert is ideal for fetching a certificate and key from Azure Key Vault and loading the certificate into your Go application's HTTP server to facilitate TLS to your app/api.  
