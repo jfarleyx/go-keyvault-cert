@@ -7,7 +7,7 @@ to fetch a PFX/PEM certificate from Azure Key Vault and returns a tls.Certificat
 
 ## Usage
 
-``` go get github.com/jfarleyx/go-keyvault-cert ```
+``` go get github.com/jfarleyx/go-keyvault-cert/v2 ```
 
 go-keyvault-cert is really easy to use. The easiest way to get started is to create the following environment variables and make them available to your application: 
 
