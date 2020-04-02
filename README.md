@@ -34,7 +34,7 @@ package main
   	"log"
   	"net/http"
 
-  	"github.com/jfarleyx/go-keyvault-cert"
+  	"github.com/jfarleyx/go-keyvault-cert/v2"
   )
 
   func main() {

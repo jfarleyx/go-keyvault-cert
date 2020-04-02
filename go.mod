@@ -1,4 +1,4 @@
-module github.com/jfarleyx/go-keyvault-cert
+module github.com/jfarleyx/go-keyvault-cert/v2
 
 go 1.13
 
