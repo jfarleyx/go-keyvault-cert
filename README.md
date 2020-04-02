@@ -3,7 +3,7 @@
 [![Go Report](https://goreportcard.com/badge/github.com/jfarleyx/go-keyvault-cert)](https://goreportcard.com/report/github.com/jfarleyx/go-keyvault-cert)
 
 go-keyvault-cert is an easy-to-use wrapper around [azure-sdk-for-go](https://github.com/Azure/azure-sdk-for-go) that allows you 
-to fetch a PFX/PEM certificate from Azure Key Vault and return it as an X509 Certificate that you can load into your app/api's web server.  
+to fetch a PFX/PEM certificate from Azure Key Vault and returns a tls.Certificate{} that you can load into your app/api's web server.  
 
 ## Usage
 
@@ -55,7 +55,7 @@ package main
   	  log.Fatalf("Error attempting to fetch certificate: %v", err)
   	}
   	
-  	// Add x509 to tls configuration
+  	// Add cert to tls configuration
   	config := &tls.Config{
   	  Certificates: []tls.Certificates{cert},
   	}
