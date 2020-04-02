@@ -57,7 +57,7 @@ package main
   	
   	// Add cert to tls configuration
   	config := &tls.Config{
-  	  Certificates: []tls.Certificates{cert},
+  	  Certificates: []tls.Certificates{*cert},
   	}
 
   	// Add tls configuration to http server
