@@ -43,26 +43,20 @@
 //  	ctx := context.Background()
 //
 //  	// Fetch certificate from Azure Key Vault
-//  	kvCert, err := akv.GetCertificate(ctx, os.Getenv("KEY_VAULT_CERT_NAME"))
+//  	cert, err := akv.GetCertificate(ctx, os.Getenv("KEY_VAULT_CERT_NAME"))
 //  	if err != nil {
 //  	  log.Fatalf("Error attempting to fetch certificate: %v", err)
 //  	}
 //
-//  	// Convert cert & key bytes to an x509 key pair
-//  	x509Cert, err := tls.x509KeyPair(kvCert.Cert, kvCert.Key)
-//  	if err != nil {
-//  	  log.Fatalf("Unable to create x509 Key Pair from Key Vault Certificate: %v", err)
-//  	}
-//
-//  	// Add x509 to tls configuration
-//  	config := &tls.Config{
-//  	  Certificates: []tls.Certificates{x509Cert},
+//  	// Add x509 certificate to tls configuration
+//  	tlsConfig := &tls.Config{
+//  	  Certificates: []tls.Certificates{cert},
 //  	}
 //
 //  	// Add tls configuration to http server
 //  	server := &http.Server{
 //  	  Addr:      ":44366",
-//  	  TLSConfig: config,
+//  	  TLSConfig: tlsConfig,
 //  	}
 //
 //  	server.ListenAndServeTLS("", "")
@@ -72,11 +66,12 @@ package kvcert
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -98,13 +93,13 @@ type AzureKeyVault struct {
 	vaultBaseURL string
 }
 
-// AzureKeyVaultCert contains a private key and the certs associated
+// azureKeyVaultCert contains a private key and the certs associated
 // with that key that were fetched from Azure Key Vault.
-type AzureKeyVaultCert struct {
-	// Key represents the private key of the certificate
-	Key []byte
-	// Cert represents the server certificate
-	Cert []byte
+type azureKeyVaultCert struct {
+	// key represents the private key of the certificate
+	key []byte
+	// cert represents the server certificate
+	cert []byte
 }
 
 // New creates and returns a new kvcert.AzureKeyVault struct.
@@ -121,10 +116,21 @@ func New(vaultName string) *AzureKeyVault {
 // order: 1. Client credentials 2. Client certificate 3. Username password 4. MSI. See github.com/Azure/azure-sdk-for-go/services/keyvault/auth
 // for more details.
 func (kv *AzureKeyVault) AuthorizeFromEnvironment() error {
+	if os.Getenv("AZURE_TENANT_ID") == "" {
+		return errors.New("AZURE_TENANT_ID environment variable not found")
+	}
+
+	if os.Getenv("AZURE_CLIENT_ID") == "" {
+		return errors.New("AZURE_CLIENT_ID environment variable not found")
+	}
+
+	if os.Getenv("AZURE_CLIENT_SECRET") == "" {
+		return errors.New("AZURE_CLIENT_SECRET environment variable not found")
+	}
+
 	authorizer, err := auth.NewAuthorizerFromEnvironment()
 	if err != nil {
-		log.Printf("Error occurred while authorizing: %v\n", err)
-		return err
+		return fmt.Errorf("Error occurred while authorizing: %v", err)
 	}
 
 	kv.client.Authorizer = authorizer
@@ -133,8 +139,8 @@ func (kv *AzureKeyVault) AuthorizeFromEnvironment() error {
 	return nil
 }
 
-// GetCertificate fetches the latest version of a certificate stored in Azure Key Vault Certificates.
-func (kv *AzureKeyVault) GetCertificate(ctx context.Context, certName string) (*AzureKeyVaultCert, error) {
+// GetCertificate returns an X509 Certificate from Azure Key Vault Certificate store.
+func (kv *AzureKeyVault) GetCertificate(ctx context.Context, certName string) (*tls.Certificate, error) {
 	if !kv.authenticated {
 		return nil, errors.New("Not Authorized - invoke AuthorizeFromEnvironment() first")
 	}
@@ -145,8 +151,7 @@ func (kv *AzureKeyVault) GetCertificate(ctx context.Context, certName string) (*
 		return nil, err
 	}
 
-	// Fetch cert and key from secret associated to cert in Azure. Certificate associated secrets are
-	// not visible in Azure UI (as of 2/4/2020).
+	// Fetch key from secret in Azure Key Vault.
 	secBundle, err := kv.client.GetSecret(ctx, kv.vaultBaseURL, certName, certVersion)
 	if err != nil {
 		return nil, fmt.Errorf("Error fetching secret: %v", err)
@@ -155,46 +160,50 @@ func (kv *AzureKeyVault) GetCertificate(ctx context.Context, certName string) (*
 	// Decode string to byte slice
 	pfxBytes, err := base64.StdEncoding.DecodeString(*secBundle.Value)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Unable to decode keyvault.SecretBundle.Value: %v", err)
 	}
 
-	// Using ToPEM, because some of our PFX files contain multiple certs (cert chain). Decode will throw
-	// an error if there are multiple certs.
+	// Using ToPEM, because some of our PFX files contain multiple certs (cert chain).
+	// Decode throws an error if there are multiple certs.
 	pemBlocks, err := pkcs12.ToPEM(pfxBytes, "")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error converting PFX contents to PEM blocks: %v", err)
 	}
 
 	// A PFX can contain more than one cert and we need to account for that here.
-	certs := &AzureKeyVaultCert{}
+	certs := &azureKeyVaultCert{}
 	for i, v := range pemBlocks {
 		if strings.Contains(v.Type, "KEY") == true {
 			var keyPEM bytes.Buffer
 			err = pem.Encode(&keyPEM, pemBlocks[i])
 			if err != nil {
-				log.Printf("Error encoding key pem block: %v", err)
-				return nil, err
+				return nil, fmt.Errorf("Error encoding key pem block: %v", err)
 			}
-			certs.Key = keyPEM.Bytes()
+			certs.key = keyPEM.Bytes()
 		}
 
 		if strings.Contains(v.Type, "CERTIFICATE") == true {
 			var certPEM bytes.Buffer
 			err = pem.Encode(&certPEM, pemBlocks[1])
 			if err != nil {
-				log.Printf("Error encoding certificate pem block: %v\n", err)
-				return nil, err
+				return nil, fmt.Errorf("Error encoding certificate pem block: %v", err)
 			}
 
-			if certs.Cert == nil {
-				certs.Cert = certPEM.Bytes()
+			if certs.cert == nil {
+				certs.cert = certPEM.Bytes()
 			} else {
-				certs.Cert = append(certs.Cert, certPEM.Bytes()...)
+				certs.cert = append(certs.cert, certPEM.Bytes()...)
 			}
 		}
 	}
 
-	return certs, nil
+	// Convert to x509 certificate
+	cert, err := tls.X509KeyPair(certs.cert, certs.key)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating X509 Key Pair: %v", err)
+	}
+
+	return &cert, nil
 }
 
 // getLatestCertVersion returns the identifier for the most recent version of the certificate.
@@ -202,8 +211,7 @@ func (kv *AzureKeyVault) getLatestCertVersion(ctx context.Context, certName stri
 	// List certificate versions
 	list, err := kv.client.GetCertificateVersionsComplete(ctx, kv.vaultBaseURL, certName, nil)
 	if err != nil {
-		log.Printf("Error while trying to fetch certificate versions from azure: %v\n", err)
-		return "", err
+		return "", fmt.Errorf("Error while trying to fetch certificate versions from Azure Key Vault: %v", err)
 	}
 
 	// Iterate through the list and get the last version

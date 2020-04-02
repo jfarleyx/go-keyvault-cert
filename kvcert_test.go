@@ -28,6 +28,7 @@ func TestAuthorizeFromEnvironment(t *testing.T) {
 	fmt.Printf("  AZURE_TENANT_ID: %s\n", os.Getenv("AZURE_TENANT_ID"))
 	fmt.Printf("  AZURE_CLIENT_ID: %s\n", os.Getenv("AZURE_CLIENT_ID"))
 	fmt.Printf("  AZURE_CLIENT_SECRET: %s\n", os.Getenv("AZURE_CLIENT_SECRET"))
+	fmt.Printf("  CERT_NAME: %s\n", os.Getenv("CERT_NAME"))
 
 	akv := New(os.Getenv("KEY_VAULT_NAME"))
 	err := akv.AuthorizeFromEnvironment()
@@ -53,10 +54,7 @@ func TestGetCertificate(t *testing.T) {
 	if cert == nil {
 		t.Fatal("Expected AzureKeyVaultCert struct, received nil")
 	}
-	if cert.Key == nil {
-		t.Fatal("Expected cert key as byte slice, received nil")
-	}
-	if cert.Cert == nil {
-		t.Fatal("Expected certificate as byte slice, received nil")
+	if len(cert.Certificate) == 0 {
+		t.Fatal("Expected Certificate, received empty byte slice")
 	}
 }
