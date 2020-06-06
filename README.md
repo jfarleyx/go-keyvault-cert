@@ -23,7 +23,7 @@ go-keyvault-cert is really easy to use. The easiest way to get started is to cre
 
 The environment variables are read by the azure-sdk-for-go when you call the ```AuthorizeFromEnvironment()``` method in ```kvcert```. 
 
-Here is an simple example of using go-keyvault-cert to fetch a cert & key from Azure Key Vault and use it in an HTTP server. The global variables ```KEY_VAULT_NAME``` & ```KEY_VAULT_CERT_NAME``` are used for example purposes only. You can provide strings in place of those two environment variables. 
+Here is an simple example of using go-keyvault-cert to fetch an x509 certificate from Azure Key Vault and use it in an HTTP server. The global variables ```KEY_VAULT_NAME``` & ```KEY_VAULT_CERT_NAME``` are used for example purposes only. You can provide strings in place of those two environment variables. 
 
 ```
 package main
