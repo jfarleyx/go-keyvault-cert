@@ -145,6 +145,11 @@ func (kv *AzureKeyVault) GetCertificate(ctx context.Context, certName string) (*
 		return nil, errors.New("Not Authorized - invoke AuthorizeFromEnvironment() first")
 	}
 
+	// make sure a cert name is provided, otherwise we risk returning the wrong certificate
+	if strings.Trim(certName, " ") == "" {
+		return nil, errors.New("Certificate name not provided")
+	}
+
 	// get version id for current version of certificate
 	certVersion, err := kv.getLatestCertVersion(ctx, certName)
 	if err != nil {
