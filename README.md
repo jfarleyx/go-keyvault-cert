@@ -3,25 +3,29 @@
 [![Go Report](https://goreportcard.com/badge/github.com/jfarleyx/go-keyvault-cert)](https://goreportcard.com/report/github.com/jfarleyx/go-keyvault-cert)
 
 go-keyvault-cert is an easy-to-use wrapper around [azure-sdk-for-go](https://github.com/Azure/azure-sdk-for-go) that allows you 
-to fetch a PEM encoded certificate from Azure Key Vault and returns an x509 ```tls.Certificate{}``` that you can use in your API's web server.  
+to fetch the most recent PEM encoded certificate from Azure Key Vault. go-keyvault-cert returns an x509 ```tls.Certificate{}``` that you can easily use with your API's web server.  
 
-## Usage
+## Install
 
 ``` go get github.com/jfarleyx/go-keyvault-cert/v2 ```
 
-go-keyvault-cert is really easy to use. First, register your API in Azure AD App Registration and retreive your tenant Id, client Id, and the client secret. Next, make the following environment variables available to your application: 
+## Usage
 
-```AZURE_TENANT_ID```: an Azure tenant ID
+go-keyvault-cert is really easy to use. 
 
-```AZURE_CLIENT_ID```: an Azure app client ID
+First, register your API in Azure AD App Registration and retreive your tenant Id, client Id, and the client secret. 
 
-```AZURE_CLIENT_SECRET```: an Azure app client secret
+Next, make the following environment variables available to your application: 
 
-**Note: The designated Azure client must have the following permissions to Azure Key Vault:**
+- ```AZURE_TENANT_ID```: an Azure tenant Id
+- ```AZURE_CLIENT_ID```: an Azure app client Id
+- ```AZURE_CLIENT_SECRET```: an Azure app client secret
+
+The environment variables are used to authenticate your application with Azure Key Vault. 
+
+**Note: The Azure client app referenced above must have the following permissions to Azure Key Vault:**
 - Certificate permissions: Get & List
 - Secret permissions: Get
-
-The environment variables are read by the azure-sdk-for-go when you call the ```AuthorizeFromEnvironment()``` method in this package (```kvcert```). 
 
 Here is an simple example of using go-keyvault-cert to fetch an x509 certificate from Azure Key Vault and use it in an HTTP server. The global variables ```KEY_VAULT_NAME``` & ```KEY_VAULT_CERT_NAME``` are used for example purposes only. You can provide strings in place of those two environment variables. 
 
