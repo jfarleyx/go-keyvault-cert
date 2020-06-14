@@ -3,13 +3,13 @@
 [![Go Report](https://goreportcard.com/badge/github.com/jfarleyx/go-keyvault-cert)](https://goreportcard.com/report/github.com/jfarleyx/go-keyvault-cert)
 
 go-keyvault-cert is an easy-to-use wrapper around [azure-sdk-for-go](https://github.com/Azure/azure-sdk-for-go) that allows you 
-to fetch a PFX/PEM certificate from Azure Key Vault and returns a tls.Certificate{} that you can load into your app/api's web server.  
+to fetch a PEM encoded certificate from Azure Key Vault and returns an x509 ```tls.Certificate{}``` that you can use in your API's web server.  
 
 ## Usage
 
 ``` go get github.com/jfarleyx/go-keyvault-cert/v2 ```
 
-go-keyvault-cert is really easy to use. The easiest way to get started is to create the following environment variables and make them available to your application: 
+go-keyvault-cert is really easy to use. First, register your API in Azure AD App Registration and retreive your tenant Id, client Id, and the client secret. Next, make the following environment variables available to your application: 
 
 ```AZURE_TENANT_ID```: an Azure tenant ID
 
@@ -21,7 +21,7 @@ go-keyvault-cert is really easy to use. The easiest way to get started is to cre
 - Certificate permissions: Get & List
 - Secret permissions: Get
 
-The environment variables are read by the azure-sdk-for-go when you call the ```AuthorizeFromEnvironment()``` method in ```kvcert```. 
+The environment variables are read by the azure-sdk-for-go when you call the ```AuthorizeFromEnvironment()``` method in this package (```kvcert```). 
 
 Here is an simple example of using go-keyvault-cert to fetch an x509 certificate from Azure Key Vault and use it in an HTTP server. The global variables ```KEY_VAULT_NAME``` & ```KEY_VAULT_CERT_NAME``` are used for example purposes only. You can provide strings in place of those two environment variables. 
 
@@ -34,7 +34,7 @@ package main
   	"log"
   	"net/http"
 
-  	"github.com/jfarleyx/go-keyvault-cert/v2"
+  	kvcert "github.com/jfarleyx/go-keyvault-cert/v2"
   )
 
   func main() {
