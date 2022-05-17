@@ -1,3 +1,5 @@
+# THIS LIBRARY IS NO LONGER MAINTAINED
+
 # GO-KEYVAULT-CERT
 [![GoDoc](https://godoc.org/github.com/jfarleyx/go-keyvault-cert?status.svg)](http://godoc.org/github.com/jfarleyx/go-keyvault-cert)
 [![Go Report](https://goreportcard.com/badge/github.com/jfarleyx/go-keyvault-cert)](https://goreportcard.com/report/github.com/jfarleyx/go-keyvault-cert)
